@@ -1,10 +1,15 @@
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <math.h>
+#include <unordered_map>
 using namespace std;
+using PatternTable = unordered_map<string, unordered_map<string, string> >;
 
 class WordInfo{
     public:
@@ -44,69 +49,176 @@ vector<string> loadWords(){
     return words;
 }
 
-
-
-
-void CASE0(WordInfo& word, int index, vector<int> Available_alphabets){
-    //ascii of a is 65
-    int letter = (int)word.s[index];
-    auto it = find(Available_alphabets.begin(), Available_alphabets.end(), letter);
-
-    if(it != Available_alphabets.end()){
-        Available_alphabets.erase(it);
+void checks(vector<char>& nonolist, vector<char>& yeslist,vector<char> correct, WordInfo& word){
+    for(int i = 0; i < 5; i++){
+        if(word.color[i] == 0){
+            nonolist.push_back(word.s[i]);
+        }
     }
+
+    for(int i = 0;i < 5; i++){
+        if(word.color[i] == 1){
+            yeslist.push_back(word.s[i]);
+        }
+    }
+
+    for(int i = 0;i < 5; i++){
+        if(word.color[i] == 2){
+            correct[i] = word.s[i];
+        }
+    }
+
 }
 
-void CASE1(WordInfo& word, int index, vector<int> mandatory_letters){
+bool isPossible(string& word, vector<char> nonolist, vector<char> yesyeslist, vector<char> correct){
 
-    int letter = (int)word.s[index];
-    mandatory_letters.push_back(letter);
-}
+    //eleminating words with letters in nonolist
+    for(char letter : nonolist){
+        if(word.find(letter) != string::npos){
+            return false;
+        }
+    }
 
-void CASE2(WordInfo& word,int index,vector<string> guessWords){
+    //to check if the word matches the known correct position in 'correct'
+    for(size_t i = 0; i < correct.size(); i++){
+        if(correct[i] != '_' & word[i] != correct[i]){
+            return false;
+        }
+    }
 
-}
-
-vector<string> AllPossibleWords(WordInfo& word, vector<int> Available_alphabets, vector<int> mandatory_letters,  vector<string> guessWords
-    , vector<string> words){
-
-    vector<string> possibleWords;
-
-    for(int i = 0; i < 3; i++){
-        for(int j = 0; j < 5; j++){
-            if(word.color[j] == 0){
-                CASE0(word, j, Available_alphabets);
-            }else if(word.color[j] == 1){
-                CASE1(word, j, mandatory_letters);
-            }else {
-                CASE2(word, j, guessWords);
-
+    //to check if yesyeslist are present but not in place of 'correct'
+    for( size_t i = 0; i < word.size(); ++i){
+        if(find(yesyeslist.begin(), yesyeslist.end(), word[i]) != yesyeslist.end()){
+            if(correct[i] == word[i]){
+                return false;
             }
         }
     }
 
-    return possibleWords;
+    //to ensure all letters of yesyeslist are present
+    for(char letter : yesyeslist){
+        if(word.find(letter) == string::npos){
+            return false;
+        }
+    }
+    return true;
+}
+
+vector<string> possibilities(vector<string> all_word,vector<string>& guessWords, vector<char> nonolist, vector<char> yesyeslist, vector<char> correct){
+
+    //check if it appears
+    for(string word : all_word){
+        if(isPossible(word, nonolist, yesyeslist, correct)){
+           guessWords.push_back(word);
+        }
+    }
+    return guessWords;
+}
+
+//three-step process to calculate entropy
+    //1. understanding feedback pattern
+string generateFeedback(string guess, string target){
+    string feedback  = "_____";
+    //for green
+    for(int i = 0; i < guess.length(); i++) {
+        if(guess[i] == target[i]) {
+            feedback[i] = 'G';
+        }
+    }
+    //for yellow
+    for(int i = 0; i < guess.length(); i++){
+        if(feedback[i] != 'G'){
+            if(find(target.begin(), target.end(), guess[i]) != target.end()){
+                feedback[i] = 'Y';
+            }
+        }
+    }
+    return feedback;
+}
+
+    //2. precomputing and calculating the patterns
+PatternTable precomputePattern(vector<string> wordList){
+    PatternTable pattern_table;
+
+    for(auto& guess : wordList){
+        for(auto& target : wordList){
+            string feedback = generateFeedback(guess, target);
+            pattern_table[guess][target] = feedback;
+        }
+    }
+
+    return pattern_table;
+}
+
+    //3. calculate frequency and entropy of target
+double calculateEntropy(string& guess, vector<string>& wordList, PatternTable& pattern_table){
+    unordered_map<string, int> patternCount;
+    int totalWords = wordList.size();
+
+    for(auto& target : wordList){
+        string pattern = pattern_table.at(guess).at(target);
+        patternCount[pattern]++;
+    }
+
+    double entropy = 0;
+    for(auto& [pattern, count] : patternCount){
+        double probablity = static_cast<double>(count)/ totalWords;
+        entropy -= probablity * log2(probablity);
+    }
+
+    return entropy;
+}
+
+WordInfo getUserInput(){
+
+}
+
+string suggestBestWord(){
+
 }
 
 
 int main(){
-    vector<string> words = loadWords();
+    vector<string> all_words = loadWords();
 
-    vector<int> Available_alphabets;
-    for(int i = 0; i < 26; i++){
-        Available_alphabets[i] = (int)'a' + i;
+    vector<char> nonolist;
+    vector<char> yesyeslist;
+    vector<char> correct(5, '_');
+
+    vector<string> guessWords;
+    int attempts = 0;
+    const int MAX_ATTEMPTS = 6;
+
+    while(attempts < MAX_ATTEMPTS){
+        WordInfo currentGuess = getUserInput();
+        checks(nonolist, yesyeslist, correct, currentGuess);
+
+        guessWords = possibilities(all_words, guessWords, nonolist, yesyeslist, correct);
+        vector<pair<string, double> > wordEntropies;
+        for(const auto& word : guessWords) {
+            double entropy = calculateEntropy(guessWords, all_words);
+            wordEntropies.push_back({word, entropy});
+        }
+
+        string bestWord = suggestBestWord(wordEntropies);
+
+        cout << "Suggested word: " << bestWord << endl;
+        cout << "Remaining possibilities: " << guessWords.size() << endl;
+
+        if (currentGuess.color[0] == 2 && currentGuess.color[1] == 2 &&
+            currentGuess.color[2] == 2 && currentGuess.color[3] == 2 &&
+            currentGuess.color[4] == 2) {
+            cout << "Congratulations! You've guessed the word!" << endl;
+            break;
+        }
+
+        attempts++;
+    }
+    if (attempts == MAX_ATTEMPTS) {
+        cout << "Sorry, you've run out of attempts." << endl;
     }
 
-    vector<int> mandatory_letters;
-    vector<string> guessWords;
-
-
-    cout << "\nPress Enter to exit...";
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-
-
-
-
+    return 0;
 
     //int tempcolors[] = {1, 1, 0, 1, 1};
     //WordInfo word1;
