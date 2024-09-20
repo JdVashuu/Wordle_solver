@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Word Probabilities</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #1a202c;
+                color: #e2e8f0;
+                margin: 0;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+            .container {
+                max-width: 100%;
+                overflow-x: auto;
+            }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            .row {
+                display: flex;
+                gap: 20px;
+                min-width: max-content;
+            }
+            .card {
+                background-color: #2d3748;
+                border-radius: 8px;
+                padding: 20px;
+                flex: 1;
+                min-width: 300px;
+            }
+            .card h2 {
+                font-size: 18px;
+                margin-top: 0;
+                margin-bottom: 15px;
+            }
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 10px;
+            }
+            .grid-item {
+                aspect-ratio: 1;
+                background-color: #4a5568;
+                border-radius: 4px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th,
+            td {
+                text-align: left;
+                padding: 10px;
+                border-bottom: 1px solid #4a5568;
+            }
+            th {
+                font-weight: bold;
+            }
+            .info {
+                color: #63b3ed;
+            }
+            .probability {
+                color: #68d391;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Possibilities / Uncertainty</h1>
+            <div class="row">
+                <div class="card">
+                    <h2>Grid</h2>
+                    <div class="grid">
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                        <div class="grid-item"></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Top Picks</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>E[Info.]</th>
+                                <th>p(word)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>tares</td>
+                                <td class="info">6.30</td>
+                                <td class="probability">0.00011</td>
+                            </tr>
+                            <tr>
+                                <td>lares</td>
+                                <td class="info">6.22</td>
+                                <td class="probability">0.00005</td>
+                            </tr>
+                            <tr>
+                                <td>rates</td>
+                                <td class="info">6.19</td>
+                                <td class="probability">0.00029</td>
+                            </tr>
+                            <tr>
+                                <td>rales</td>
+                                <td class="info">6.17</td>
+                                <td class="probability">0.00006</td>
+                            </tr>
+                            <tr>
+                                <td>tears</td>
+                                <td class="info">6.17</td>
+                                <td class="probability">0.00029</td>
+                            </tr>
+                            <tr>
+                                <td>tales</td>
+                                <td class="info">6.16</td>
+                                <td class="probability">0.00027</td>
+                            </tr>
+                            <tr>
+                                <td>salet</td>
+                                <td class="info">6.15</td>
+                                <td class="probability">0.00001</td>
+                            </tr>
+                            <tr>
+                                <td>teras</td>
+                                <td class="info">6.15</td>
+                                <td class="probability">0.00001</td>
+                            </tr>
+                            <tr>
+                                <td>arles</td>
+                                <td class="info">6.13</td>
+                                <td class="probability">0.00013</td>
+                            </tr>
+                            <tr>
+                                <td>nares</td>
+                                <td class="info">6.12</td>
+                                <td class="probability">0.00009</td>
+                            </tr>
+                            <tr>
+                                <td>soare</td>
+                                <td class="info">6.12</td>
+                                <td class="probability">0.00001</td>
+                            </tr>
+                            <tr>
+                                <td>saner</td>
+                                <td class="info">6.09</td>
+                                <td class="probability">0.00007</td>
+                            </tr>
+                            <tr>
+                                <td>reals</td>
+                                <td class="info">6.09</td>
+                                <td class="probability">0.00008</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

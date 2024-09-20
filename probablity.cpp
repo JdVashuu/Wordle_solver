@@ -61,10 +61,6 @@ double calculateEntropy(string& guess, vector<string>& wordList, PatternTable& p
     return entropy;
 }
 
-
-
-
-
 int main(){
     vector<std::string> wordList = {"apple", "grape", "spoon", "horse"};
     PatternTable pattern_table = precomputePattern(wordList);

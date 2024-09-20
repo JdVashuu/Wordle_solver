@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -49,7 +50,7 @@ vector<string> loadWords(){
     return words;
 }
 
-void checks(vector<char>& nonolist, vector<char>& yeslist,vector<char> correct, WordInfo& word){
+void checks(vector<char>& nonolist, vector<char>& yeslist,vector<char>& correct, WordInfo& word){
     for(int i = 0; i < 5; i++){
         if(word.color[i] == 0){
             nonolist.push_back(word.s[i]);
@@ -58,7 +59,9 @@ void checks(vector<char>& nonolist, vector<char>& yeslist,vector<char> correct, 
 
     for(int i = 0;i < 5; i++){
         if(word.color[i] == 1){
-            yeslist.push_back(word.s[i]);
+            if(find(yeslist.begin(), yeslist.end(), word.s[i]) == yeslist.end()){
+                yeslist.push_back(word.s[i]);
+            }
         }
     }
 
@@ -67,51 +70,61 @@ void checks(vector<char>& nonolist, vector<char>& yeslist,vector<char> correct, 
             correct[i] = word.s[i];
         }
     }
-
 }
+bool isPossible(string& word, vector<char> nonolist, vector<char> yesyeslist, vector<char> correct) {
+    cout << "Checking word: " << word << endl;
 
-bool isPossible(string& word, vector<char> nonolist, vector<char> yesyeslist, vector<char> correct){
-
-    //eleminating words with letters in nonolist
-    for(char letter : nonolist){
-        if(word.find(letter) != string::npos){
+    // Eliminate words with letters in nonolist
+    for (char letter : nonolist) {
+        if (word.find(letter) != string::npos) {
+            cout << "Eliminated due to nonolist letter: " << letter << endl;
             return false;
         }
     }
 
-    //to check if the word matches the known correct position in 'correct'
-    for(size_t i = 0; i < correct.size(); i++){
-        if(correct[i] != '_' & word[i] != correct[i]){
+    // Check if the word matches the known correct position in 'correct'
+    for (size_t i = 0; i < correct.size(); ++i) {
+        if (correct[i] != '_' && word[i] != correct[i]) {
+            cout << "Eliminated due to mismatched correct letter at position " << i << endl;
             return false;
         }
     }
 
-    //to check if yesyeslist are present but not in place of 'correct'
-    for( size_t i = 0; i < word.size(); ++i){
-        if(find(yesyeslist.begin(), yesyeslist.end(), word[i]) != yesyeslist.end()){
-            if(correct[i] == word[i]){
+    // Ensure all letters in yesyeslist are present but not in the same position as 'correct'
+    // potentially wrong
+    for (char letter : yesyeslist) {
+            bool found_in_word = false;
+
+            for (size_t i = 0; i < word.size(); ++i) {
+                if (word[i] == letter) {
+                    found_in_word = true;
+                    break;  // We only need to find the letter once
+                }
+            }
+
+            if (!found_in_word) {
+                cout << "Eliminated due to missing yesyeslist letter: " << letter << endl;
                 return false;
             }
-        }
     }
 
-    //to ensure all letters of yesyeslist are present
-    for(char letter : yesyeslist){
-        if(word.find(letter) == string::npos){
-            return false;
-        }
-    }
+
+    // Passed all checks
     return true;
 }
-
 vector<string> possibilities(vector<string> all_word,vector<string>& guessWords, vector<char> nonolist, vector<char> yesyeslist, vector<char> correct){
 
+    guessWords.clear();
+    int count;
     //check if it appears
     for(string word : all_word){
         if(isPossible(word, nonolist, yesyeslist, correct)){
            guessWords.push_back(word);
+           count++;
         }
     }
+
+    cout << "Debug: Found " << count << " possible words" << endl;
     return guessWords;
 }
 
@@ -151,7 +164,7 @@ PatternTable precomputePattern(vector<string> wordList){
 }
 
     //3. calculate frequency and entropy of target
-double calculateEntropy(string& guess, vector<string>& wordList, PatternTable& pattern_table){
+double calculateEntropy(const string& guess, vector<string>& wordList, PatternTable& pattern_table){
     unordered_map<string, int> patternCount;
     int totalWords = wordList.size();
 
@@ -165,39 +178,66 @@ double calculateEntropy(string& guess, vector<string>& wordList, PatternTable& p
         double probablity = static_cast<double>(count)/ totalWords;
         entropy -= probablity * log2(probablity);
     }
-
     return entropy;
 }
 
 WordInfo getUserInput(){
+// this is me vashu and im tryin to learn vim in zed
+    WordInfo input;
+    cout << "Enter your guess(5 letters) : ";
+    cin >> input.s;
+    transform(input.s.begin(), input.s.end(),input.s.begin(), ::toupper);
 
+    cout << "Enter the color feedback (0 for gray, 1 for yellow, 2 for green): ";
+    for (int i = 0; i < 5; i++) {
+        cin >> input.color[i];
+    }
+    return input;
 }
 
-string suggestBestWord(){
-
+string suggestBestWord(vector<pair<string, double> >&  wordEntropies){
+    if(wordEntropies.empty()){
+        return "";
+    }
+    auto maxEntropy = max_element(wordEntropies.begin(), wordEntropies.end(),
+        [](const auto& a, const auto& b) { return a.second < b.second; });
+    return maxEntropy->first;
 }
-
 
 int main(){
     vector<string> all_words = loadWords();
+    PatternTable patternTable = precomputePattern(all_words);
 
     vector<char> nonolist;
     vector<char> yesyeslist;
     vector<char> correct(5, '_');
 
-    vector<string> guessWords;
+    vector<string> guessWords = all_words;
     int attempts = 0;
     const int MAX_ATTEMPTS = 6;
 
-    while(attempts < MAX_ATTEMPTS){
+    while (attempts < MAX_ATTEMPTS) {
         WordInfo currentGuess = getUserInput();
         checks(nonolist, yesyeslist, correct, currentGuess);
 
         guessWords = possibilities(all_words, guessWords, nonolist, yesyeslist, correct);
         vector<pair<string, double> > wordEntropies;
-        for(const auto& word : guessWords) {
-            double entropy = calculateEntropy(guessWords, all_words);
-            wordEntropies.push_back({word, entropy});
+        cout << "Current state:" << endl;
+        cout << "Nonolist: ";
+        for(char c : nonolist) cout << c << " ";
+        cout << endl;
+        cout << "Yesyeslist: ";
+        for(char c : yesyeslist) cout << c << " ";
+        cout << endl;
+        cout << "Correct: ";
+        for(char c : correct) cout << c << " ";
+        cout << endl;
+
+
+        for (const auto& word : guessWords) {
+            double entropy = calculateEntropy(word, guessWords, patternTable);
+            wordEntropies.push_back( {word, entropy});
+            cout << "Debug: Word: " << word << ", Entropy: " << entropy << endl;
         }
 
         string bestWord = suggestBestWord(wordEntropies);
@@ -219,11 +259,4 @@ int main(){
     }
 
     return 0;
-
-    //int tempcolors[] = {1, 1, 0, 1, 1};
-    //WordInfo word1;
-    // word1.s = "chair";
-    // for(int i = 0; i < 5; i++){
-    //     word1.color[i] = tempcolors[i];
-    // }
 }
