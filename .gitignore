@@ -1,4 +1,11 @@
+*.out
 a.out
 wordle-solver.out
+
+*.bin
+
+
 DATA/cleanse
 DATA/badList.txt
+
+.DS_Store
